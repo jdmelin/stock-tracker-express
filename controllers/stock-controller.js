@@ -18,22 +18,13 @@ module.exports = {
   async getAll(req, res) {
     try {
       const userId = 1;
-
       const allStocks = await Stock.findAll({
         attributes: ['id', 'name', 'symbol'],
         order: [['name', 'asc']],
       });
-
       const userStocks = await UserStock.findAll({ where: { userId } });
-
       const stocks = allStocks.map((stock) => stock.get({ plain: true }));
-
-      const favorites = userStocks.reduce((favs, userStock) => {
-        if ((userStock.userId = userId)) {
-          favs.push(userStock.stockId);
-        }
-        return favs;
-      }, []);
+      const favorites = userStocks.map((userStock) => userStock.stockId);
 
       for (const stock of stocks) {
         const isFavorite = favorites.includes(stock.id);
