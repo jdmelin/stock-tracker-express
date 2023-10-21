@@ -49,8 +49,8 @@ module.exports = {
           updatedAt: new Date(),
         },
         {
-          name: 'ForgeRock',
-          symbol: 'FORG',
+          name: 'authID',
+          symbol: 'AUID',
           createdAt: new Date(),
           updatedAt: new Date(),
         },

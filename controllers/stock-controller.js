@@ -1,8 +1,10 @@
 const { Stock, User, UserStock } = require('../models');
+const getAveragePrice = require('../utils/getAveragePrice');
+const getStockPrice = require('../utils/getStockPrice');
 
 module.exports = {
   async createUserStock(req, res) {
-    const userId = 1;
+    const userId = req.session.user.id;
     const { stockId } = req.params;
     try {
       await UserStock.create({
@@ -17,7 +19,7 @@ module.exports = {
 
   async getAll(req, res) {
     try {
-      const userId = 1;
+      const userId = req.session.user.id;
       const allStocks = await Stock.findAll({
         attributes: ['id', 'name', 'symbol'],
         order: [['name', 'asc']],
@@ -29,10 +31,15 @@ module.exports = {
       for (const stock of stocks) {
         const isFavorite = favorites.includes(stock.id);
         stock.favorite = isFavorite;
+        stock.price = await getStockPrice(stock.symbol);
       }
+
+      const average = getAveragePrice(stocks);
 
       res.render('template', {
         locals: {
+          loggedIn: req.session.user,
+          average,
           stocks,
         },
         partials: {
@@ -45,7 +52,7 @@ module.exports = {
   },
 
   async getAllByUserId(req, res) {
-    const id = 1;
+    const { id } = req.session.user;
 
     try {
       const user = await User.findByPk(id, {
@@ -60,22 +67,31 @@ module.exports = {
         },
       });
 
+      const stocks = user.stocks.map((stock) => stock.get({ plain: true }));
+
+      for (const stock of stocks) {
+        stock.price = await getStockPrice(stock.symbol);
+      }
+
+      const average = getAveragePrice(stocks);
+
       res.render('template', {
         locals: {
-          stocks: user.stocks,
+          loggedIn: req.session.user,
+          average,
+          stocks,
         },
         partials: {
           content: '/partials/my-stocks',
         },
       });
-    } catch (e) {
-      console.log(e);
+    } catch {
       // handle error
     }
   },
 
   async removeUserStock(req, res) {
-    const userId = 1;
+    const userId = req.session.user.id;
     const { stockId } = req.params;
 
     try {
